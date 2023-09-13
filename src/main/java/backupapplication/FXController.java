@@ -7,13 +7,13 @@ import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import java.io.File;
+import java.text.DecimalFormat;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
 
 public class FXController implements Observer{
 
-    private Task<Void> task = null;
     private final BackupApplication backUpApplication = new BackupApplication(null, null);
     private final String newModeString = """
                     New Backup:
@@ -196,25 +196,21 @@ public class FXController implements Observer{
 
     @Override
     public void updateProgressBarAndText(BackupApplication backupApplication) {
-        int progress = (int) (((double) backupApplication.getProgressSize()
+        double progress = (((double) backupApplication.getProgressSize()
                 / (double) backupApplication.getSourceDirectorySize()));
         progressBar.setProgress(progress);
-        progressText.setText(progress*100 + "%");
+        progressText.setText(((int)(progress*100)) + "%");
     }
 
     private void startWorkerThread(String newDirectoryName) {
-        task = new Task<>() {
+       Task<Void> task = new Task<>() {
             @Override
             protected Void call() {
-                System.out.println("starting backup in '" + backupMode + "' mode.");
+                System.out.println("Starting backup in '" + backupMode + "' mode.");
                 switch (backupMode) {
                     case NEW -> backUpApplication.newBackup(newDirectoryName);
                     case CONSECUTIVE -> backUpApplication.consecutiveBackup();
                     case UPDATING -> backUpApplication.updatedBackup();
-                }
-
-                while (isRunning()) {
-                    updateProgressBarAndText(backUpApplication);
                 }
                 return null;
             }

@@ -5,4 +5,3 @@ It's UI is now build on JavaFX rather than Swing
 
 Issues:
 - canceln funktioniert nicht, wenn thread läuft
-- progress funktiniert garnicht
