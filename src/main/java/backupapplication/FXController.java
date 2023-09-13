@@ -62,6 +62,12 @@ public class FXController implements Observer{
     private Text progressText = new Text();
 
     @FXML
+    void initialize() {
+        backupModeInfoText.setStyle("-fx-control-inner-background: #e6e6e6 ;");
+        targetDirectoryText.setStyle("-fx-control-inner-background: #e6e6e6 ;");
+        sourceDirectoryText.setStyle("-fx-control-inner-background: #e6e6e6 ;");
+    }
+    @FXML
     void chooseSourceDirectoryPressed() {
         showDirectoryChooser(sourceDirectoryChooseButton);
     }
