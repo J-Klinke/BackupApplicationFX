@@ -4,7 +4,7 @@ public abstract class Observable {
     private Observer observer;
 
     protected void notifyObserver(BackupApplication backupApplication) {
-        observer.update(backupApplication);
+        observer.updateProgressBarAndText(backupApplication);
     }
 
     public void setObserver(Observer observer) {

@@ -1,5 +1,5 @@
 package backupapplication;
 
 public interface Observer {
-    void update(BackupApplication backupApplication);
+    void updateProgressBarAndText(BackupApplication backupApplication);
 }

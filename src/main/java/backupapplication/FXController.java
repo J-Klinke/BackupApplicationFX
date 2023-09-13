@@ -6,14 +6,10 @@ import javafx.scene.control.*;
 import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
-
 import java.io.File;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
-// TODO: canceln funktioniert nicht, wenn thread läuft
-// TODO: progress funktiniert garnicht
-// TODO: Exceptions wenn filechooser geschlossen wird
 
 public class FXController implements Observer{
 
@@ -30,62 +26,57 @@ public class FXController implements Observer{
     private BackupMode backupMode = BackupMode.NEW;
 
     @FXML
-    private TextArea backupModeInfoText = new TextArea(newModeString);
-
-    @FXML
-    private Button cancelButton = new Button();
-
-    @FXML
-    public RadioButton consecutiveRadioButton = new RadioButton();
-
-    @FXML
-    private Button targetDirectoryChooseButton;
-
-    @FXML
-    public RadioButton newRadioButton = new RadioButton();
-
-    @FXML
-    private ProgressBar progressBar;
-
-    @FXML
     private Button sourceDirectoryChooseButton;
 
     @FXML
     private TextArea sourceDirectoryText = new TextArea();
 
     @FXML
-    private Text progressText = new Text();
-
-    @FXML
-    private Button startButton = new Button();
+    private Button targetDirectoryChooseButton;
 
     @FXML
     private TextArea targetDirectoryText = new TextArea();
 
     @FXML
+    public RadioButton newRadioButton = new RadioButton();
+
+    @FXML
+    public RadioButton consecutiveRadioButton = new RadioButton();
+
+    @FXML
     private CheckBox deleteCheckBox = new CheckBox();
 
     @FXML
-    void cancelButtonPressed() {
-        Stage stage = (Stage) cancelButton.getScene().getWindow();
-       //if (task != null && task.isRunning()) {
-           /* task.cancel(true);
-            if (task == null || task.isCancelled()) {
-                stage.close();
-            } else {
-                cancelButtonPressed();
-            }
-        } else */ stage.close();
-    }
+    private TextArea backupModeInfoText = new TextArea(newModeString);
+
+    @FXML
+    private Button startButton = new Button();
+
+    @FXML
+    private Button cancelButton = new Button();
+
+    @FXML
+    private ProgressBar progressBar;
+
+    @FXML
+    private Text progressText = new Text();
 
     @FXML
     void chooseSourceDirectoryPressed() {
-        DirectoryChooser fileChooser = new DirectoryChooser();
-        fileChooser.setTitle("choose source directory");
-        fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
-        backUpApplication.setSourceRootFile(fileChooser.showDialog
-                ((sourceDirectoryChooseButton.getScene().getWindow())));
-        sourceDirectoryText.setText(backUpApplication.getSourceRootFile().toString());
+        showDirectoryChooser(sourceDirectoryChooseButton);
+    }
+
+    @FXML
+    void chooseTargetDirectoryPressed() {
+        showDirectoryChooser(targetDirectoryChooseButton);
+    }
+
+    @FXML
+    void newRadioPressed() {
+        backupMode = BackupMode.NEW;
+        backupModeInfoText.setText(newModeString);
+        deleteCheckBox.setDisable(true);
+        deleteCheckBox.setSelected(false);
         checkIfBackupPossible();
     }
 
@@ -100,7 +91,7 @@ public class FXController implements Observer{
                 or were changed since the last backup will be copied.
                 
                 Additionally, You can choose to delete all of the files
-                not existent in the source directory in the target 
+                not existent in the source directory in the target
                 directory by choosing 'delete option'""");
         deleteCheckBox.setDisable(false);
         checkIfBackupPossible();
@@ -114,34 +105,42 @@ public class FXController implements Observer{
     }
 
     @FXML
-    void newRadioPressed() {
-        backupMode = BackupMode.NEW;
-        backupModeInfoText.setText(newModeString);
-        deleteCheckBox.setDisable(true);
-        deleteCheckBox.setSelected(false);
-        checkIfBackupPossible();
-    }
-
-    @FXML
     void startButtonPressed() {
         startBackup();
 
     }
 
     @FXML
-    void chooseTargetDirectoryPressed() {
-        DirectoryChooser fileChooser = new DirectoryChooser();
-        fileChooser.setTitle("choose target directory");
-        fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
-        backUpApplication.setTargetRootFile(fileChooser.showDialog
-                ((targetDirectoryChooseButton.getScene().getWindow())));
-        targetDirectoryText.setText(backUpApplication.getTargetRootFile().toString());
-        checkIfBackupPossible();
+    void cancelButtonPressed() {
+        Stage stage = (Stage) cancelButton.getScene().getWindow();
+        //if (task != null && task.isRunning()) {
+           /* task.cancel(true);
+            if (task == null || task.isCancelled()) {
+                stage.close();
+            } else {
+                cancelButtonPressed();
+            }
+        } else */ stage.close();
     }
 
-    public void checkIfBackupPossible() {
-        startButton.setDisable(!(this.backupMode != BackupMode.NONE && backUpApplication.getSourceRootFile() != null
-                && backUpApplication.getTargetRootFile() != null));
+
+    private void showDirectoryChooser(Button button) {
+        DirectoryChooser fileChooser = new DirectoryChooser();
+        File file;
+        fileChooser.setTitle("choose " + (button.getId().contains("source") ? "source" : "target") + " directory");
+        fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
+        file = (fileChooser.showDialog((button.getScene().getWindow())));
+        if (file != null) {
+            if (button.getId().contains("source")) {
+                backUpApplication.setSourceRootFile(file);
+                sourceDirectoryText.setText(file.toString());
+            } else {
+                backUpApplication.setTargetRootFile(file);
+                targetDirectoryText.setText(file.toString());
+            }
+
+        }
+        checkIfBackupPossible();
     }
 
     private void startBackup() {
@@ -156,7 +155,7 @@ public class FXController implements Observer{
                 inputDialog.setHeaderText("Enter the name of the new directory.");
                 inputDialog.showAndWait();
                 String newDirectoryName = inputDialog.getResult();
-                   if (newDirectoryName != null) {
+                if (newDirectoryName != null) {
                     startWorkerThread(newDirectoryName);
                 }
             } case CONSECUTIVE -> startWorkerThread(null);
@@ -166,6 +165,11 @@ public class FXController implements Observer{
                 }
             }
         }
+    }
+
+    public void checkIfBackupPossible() {
+        startButton.setDisable(!(this.backupMode != BackupMode.NONE && backUpApplication.getSourceRootFile() != null
+                && backUpApplication.getTargetRootFile() != null));
     }
 
     private boolean showUpdatingModeWarning() {
@@ -185,7 +189,7 @@ public class FXController implements Observer{
     }
 
     @Override
-    public void update(BackupApplication backupApplication) {
+    public void updateProgressBarAndText(BackupApplication backupApplication) {
         int progress = (int) (((double) backupApplication.getProgressSize()
                 / (double) backupApplication.getSourceDirectorySize()));
         progressBar.setProgress(progress);
@@ -204,7 +208,7 @@ public class FXController implements Observer{
                 }
 
                 while (isRunning()) {
-                    updateProgressBarAndText();
+                    updateProgressBarAndText(backUpApplication);
                 }
                 return null;
             }
@@ -223,13 +227,6 @@ public class FXController implements Observer{
             }
         };
         new Thread(task).start();
-    }
-
-    private void updateProgressBarAndText() {
-        int progress = (int) (((double) backUpApplication.getProgressSize()
-                / (double) backUpApplication.getSourceDirectorySize()));
-        progressBar.setProgress(progress);
-        progressText.setText(progress*100 + "%");
     }
 }
 

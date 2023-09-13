@@ -84,11 +84,9 @@
             <Cursor fx:constant="DEFAULT" />
          </cursor>
         </TextArea>
-      <StackPane prefHeight="150.0" prefWidth="200.0" GridPane.columnSpan="2" GridPane.rowIndex="5">
-         <children>
-              <ProgressBar fx:id="progressBar" prefHeight="20.0" prefWidth="300.0" progress="0.0" />
-            <Text fx:id="progressText" strokeType="OUTSIDE" strokeWidth="0.0" text="0%" />
-         </children>
-      </StackPane>
+        <StackPane prefHeight="150.0" prefWidth="200.0" GridPane.columnSpan="2" GridPane.rowIndex="5">
+            <ProgressBar fx:id="progressBar" prefHeight="20.0" prefWidth="300.0" progress="0.0"/>
+            <Text fx:id="progressText" strokeType="OUTSIDE" strokeWidth="0.0" text="0%"/>
+        </StackPane>
     </GridPane>
 </AnchorPane>
