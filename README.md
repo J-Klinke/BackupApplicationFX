@@ -4,4 +4,4 @@ JavaFX-based version of FlodKos (https://github.com/FlodKo) and mine BackUpAppli
 It's UI is now build on JavaFX rather than Swing
 
 Issues:
-- canceln funktioniert nicht, wenn thread läuft
+- canceln funktioniert jetzt, wenn task läuft, aber kann kaputte dateien erzeugen.

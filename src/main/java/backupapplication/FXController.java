@@ -24,6 +24,8 @@ public class FXController implements Observer{
                     after pressing 'start'.""";
     private BackupMode backupMode = BackupMode.NEW;
 
+    Task<Void> task;
+
     @FXML
     private Button sourceDirectoryChooseButton;
 
@@ -66,6 +68,7 @@ public class FXController implements Observer{
         targetDirectoryText.setStyle("-fx-control-inner-background: #e6e6e6 ;");
         sourceDirectoryText.setStyle("-fx-control-inner-background: #e6e6e6 ;");
     }
+
     @FXML
     void chooseSourceDirectoryPressed() {
         showDirectoryChooser(sourceDirectoryChooseButton);
@@ -112,22 +115,23 @@ public class FXController implements Observer{
     @FXML
     void startButtonPressed() {
         startBackup();
-
     }
 
     @FXML
     void cancelButtonPressed() {
         Stage stage = (Stage) cancelButton.getScene().getWindow();
-        //if (task != null && task.isRunning()) {
-           /* task.cancel(true);
-            if (task == null || task.isCancelled()) {
+        if (task != null && task.isRunning()) {
+            String warningMessage = """
+                        There is a backup in progress.
+                        Are you sure you want to cancel the process?
+                        """;
+            if (showWarningDialog(warningMessage)) {
                 stage.close();
-            } else {
-                cancelButtonPressed();
             }
-        } else */ stage.close();
+        } else {
+            stage.close();
+        }
     }
-
 
     private void showDirectoryChooser(Button button) {
         DirectoryChooser fileChooser = new DirectoryChooser();
@@ -138,12 +142,11 @@ public class FXController implements Observer{
         if (file != null) {
             if (button.getId().contains("source")) {
                 backUpApplication.setSourceRootFile(file);
-                sourceDirectoryText.setText(file.toString());
+                sourceDirectoryText.setText(printFilePath(file));
             } else {
                 backUpApplication.setTargetRootFile(file);
-                targetDirectoryText.setText(file.toString());
+                targetDirectoryText.setText(printFilePath(file));
             }
-
         }
         checkIfBackupPossible();
     }
@@ -165,7 +168,16 @@ public class FXController implements Observer{
                 }
             } case CONSECUTIVE -> startWorkerThread(null);
             case UPDATING -> {
-                if (showUpdatingModeWarning()) {
+                String warningMessage = """
+                        This will delete all files in the target directory,
+                        which are not present in the source directory.
+
+                        If there are any files in the target directory which
+                        should not be deleted, safe them somewhere else.
+
+                        Are you sure you want to continue?
+                        """;
+                if (showWarningDialog(warningMessage)) {
                     startWorkerThread(null);
                 }
             }
@@ -177,18 +189,8 @@ public class FXController implements Observer{
                 && backUpApplication.getTargetRootFile() != null));
     }
 
-    private boolean showUpdatingModeWarning() {
-        String warningMessage = """
-                        This will delete all files in the target directory,
-                        which are not present in the source directory.
-
-                        If there are any files in the target directory which
-                        should not be deleted, safe them somewhere else.
-
-                        Are you sure you want to continue?
-                        """;
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, warningMessage, ButtonType.OK, ButtonType.CANCEL);
-
+    private boolean showWarningDialog(String message) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, message, ButtonType.OK, ButtonType.CANCEL);
         alert.showAndWait();
         return alert.getResult() == ButtonType.OK;
     }
@@ -202,7 +204,7 @@ public class FXController implements Observer{
     }
 
     private void startWorkerThread(String newDirectoryName) {
-       Task<Void> task = new Task<>() {
+       task = new Task<>() {
             @Override
             protected Void call() {
                 System.out.println("Starting backup in '" + backupMode + "' mode.");
@@ -227,7 +229,27 @@ public class FXController implements Observer{
                 }
             }
         };
-        new Thread(task).start();
+        Thread t = new Thread(task);
+        t.setDaemon(true);
+        t.start();
+    }
+
+    private static String printFilePath(File file) {
+        String[] splitPath = file.toString().split("(?<=/)");
+        StringBuilder stringBuilder = new StringBuilder();
+        StringBuilder eachLine = new StringBuilder();
+        int textAreaWidth = 45;
+        int i = 0;
+        while (i < splitPath.length) {
+            while (i < splitPath.length && (splitPath[i].length() > textAreaWidth
+                    || eachLine.length() + splitPath[i].length() < textAreaWidth)) {
+                eachLine.append(splitPath[i]);
+                i++;
+            }
+            stringBuilder.append(eachLine).append("\n");
+            eachLine.setLength(0);
+        }
+        return stringBuilder.toString();
     }
 }
 
