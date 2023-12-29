@@ -1,13 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="ArtifactsWorkspaceSettings">
+    <artifacts-to-build>
+      <artifact name="BackUpApplicationfx:jar" />
+    </artifacts-to-build>
+  </component>
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="1361f67c-b634-478a-80ce-f31c2c0150b7" name="Changes" comment="resolved progressbar bug">
+    <list default="true" id="1361f67c-b634-478a-80ce-f31c2c0150b7" name="Changes" comment="updated Todos">
+      <change afterPath="$PROJECT_DIR$/.idea/artifacts/BackUpApplicationfx_jar.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/backupapplication/main/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/backupapplication/FXController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/backupapplication/FXController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/backupapplication/Main.java" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -22,6 +31,11 @@
     </option>
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="master" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="MarkdownSettingsMigration">
@@ -36,26 +50,37 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/uni/IdeaProjects/BackUpApplicationfx/src/main/java/backupapplication&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.Main.executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "/home/uni/IdeaProjects/BackUpApplicationfx/src/main/java/backupapplication",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "configurable.group.editor"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/src/main/java/backupapplication" />
     </key>
+    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="" />
+    </key>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Application.Main">
     <configuration name="FXApplication" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="ALTERNATIVE_JRE_PATH" value="corretto-20" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
       <option name="MAIN_CLASS_NAME" value="backupapplication.FXApplication" />
       <module name="BackUpApplicationfx" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="backupapplication.*" />
+          <option name="PATTERN" value=".*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -63,8 +88,16 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="backupapplication.main.Main" />
+      <module name="BackUpApplicationfx" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.Main" />
         <item itemvalue="Application.FXApplication" />
       </list>
     </recent_temporary>
@@ -126,7 +159,23 @@
       <option name="project" value="LOCAL" />
       <updated>1694618712562</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="- implemented printFilePath() for line breaks in the directoryTexts&#10;- added Daemon to the Task to solve cancel issues&#10;- improved WarningDialog implementations">
+      <option name="closed" value="true" />
+      <created>1694968767952</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1694968767952</updated>
+    </task>
+    <task id="LOCAL-00008" summary="updated Todos">
+      <option name="closed" value="true" />
+      <created>1700761227353</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1700761227354</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -146,7 +195,9 @@
     <MESSAGE value="resolved DirectoryChooser issues;&#10;some code quality improvements in FXController.java" />
     <MESSAGE value="improved the textareas" />
     <MESSAGE value="resolved progressbar bug" />
-    <option name="LAST_COMMIT_MESSAGE" value="resolved progressbar bug" />
+    <MESSAGE value="- implemented printFilePath() for line breaks in the directoryTexts&#10;- added Daemon to the Task to solve cancel issues&#10;- improved WarningDialog implementations" />
+    <MESSAGE value="updated Todos" />
+    <option name="LAST_COMMIT_MESSAGE" value="updated Todos" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

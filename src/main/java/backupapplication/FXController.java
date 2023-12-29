@@ -5,6 +5,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import java.io.File;
 import java.time.ZonedDateTime;
@@ -114,7 +115,13 @@ public class FXController implements Observer{
 
     @FXML
     void startButtonPressed() {
-        startBackup();
+        Stage progressStage = new Stage();
+        Stage mainStage = (Stage) startButton.getScene().getWindow();
+        progressStage.initOwner(mainStage);
+        progressStage.initModality(Modality.APPLICATION_MODAL);
+        progressStage.showAndWait();
+        progressStage.centerOnScreen();
+        //startBackup();
     }
 
     @FXML
@@ -124,6 +131,7 @@ public class FXController implements Observer{
             String warningMessage = """
                         There is a backup in progress.
                         Are you sure you want to cancel the process?
+                        It may produce defective files.
                         """;
             if (showWarningDialog(warningMessage)) {
                 stage.close();
@@ -207,6 +215,7 @@ public class FXController implements Observer{
        task = new Task<>() {
             @Override
             protected Void call() {
+                startButton.setDisable(true);
                 System.out.println("Starting backup in '" + backupMode + "' mode.");
                 switch (backupMode) {
                     case NEW -> backUpApplication.newBackup(newDirectoryName);
@@ -226,6 +235,7 @@ public class FXController implements Observer{
                 if (successAlert.getResult() == ButtonType.OK) {
                     progressBar.setProgress(0);
                     progressText.setText("0%");
+                    checkIfBackupPossible();
                 }
             }
         };
