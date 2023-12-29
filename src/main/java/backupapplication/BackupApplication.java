@@ -167,4 +167,8 @@ public class BackupApplication extends Observable {
     public DirectorySizeCalculator getDirectorySizeCalculator() {
         return directorySizeCalculator;
     }
+
+    public BackupMode getBackupMode() {
+        return backupMode;
+    }
 }

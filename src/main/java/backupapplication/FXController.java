@@ -1,18 +1,21 @@
 package backupapplication;
 
-import javafx.concurrent.Task;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
-import javafx.scene.text.Text;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.TextArea;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+
 import java.io.File;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
+import java.io.IOException;
 
 
-public class FXController implements Observer{
+public class FXController{
 
     private final BackupApplication backUpApplication = new BackupApplication(null, null);
     private final String newModeString = """
@@ -25,7 +28,7 @@ public class FXController implements Observer{
                     after pressing 'start'.""";
     private BackupMode backupMode = BackupMode.NEW;
 
-    Task<Void> task;
+
 
     @FXML
     private Button sourceDirectoryChooseButton;
@@ -57,11 +60,6 @@ public class FXController implements Observer{
     @FXML
     private Button cancelButton = new Button();
 
-    @FXML
-    private ProgressBar progressBar;
-
-    @FXML
-    private Text progressText = new Text();
 
     @FXML
     void initialize() {
@@ -114,12 +112,19 @@ public class FXController implements Observer{
     }
 
     @FXML
-    void startButtonPressed() {
+    void startButtonPressed() throws IOException {
+        FXMLLoader fxmlLoader = new FXMLLoader(FXApplication.class.getResource("progressWindow.fxml"));
+        ((ProgressWindow)fxmlLoader.getController()).setBackupApplication(backUpApplication);
+        Scene scene = new Scene(fxmlLoader.load());
         Stage progressStage = new Stage();
+        progressStage.setScene(scene);
         Stage mainStage = (Stage) startButton.getScene().getWindow();
         progressStage.initOwner(mainStage);
         progressStage.initModality(Modality.APPLICATION_MODAL);
         progressStage.showAndWait();
+
+        //ProgressWindow p = new ProgressWindow();
+        //p.startBackup(backUpApplication);
         progressStage.centerOnScreen();
         //startBackup();
     }
@@ -127,7 +132,7 @@ public class FXController implements Observer{
     @FXML
     void cancelButtonPressed() {
         Stage stage = (Stage) cancelButton.getScene().getWindow();
-        if (task != null && task.isRunning()) {
+        /*if (task != null && task.isRunning()) {
             String warningMessage = """
                         There is a backup in progress.
                         Are you sure you want to cancel the process?
@@ -139,6 +144,9 @@ public class FXController implements Observer{
         } else {
             stage.close();
         }
+
+         */
+        stage.close();
     }
 
     private void showDirectoryChooser(Button button) {
@@ -159,89 +167,9 @@ public class FXController implements Observer{
         checkIfBackupPossible();
     }
 
-    private void startBackup() {
-        backUpApplication.setObserver(this);
-        backUpApplication.setProgressSize(4096);
-        backUpApplication.setSourceDirectorySize(backUpApplication.getDirectorySizeCalculator().calculateSize(
-                backUpApplication.getSourceRootFile().toPath(), backUpApplication.getDirectorySizeCalculator()));
-        switch (backupMode) {
-            case NEW -> {
-                TextInputDialog inputDialog = new TextInputDialog("Backup-" + ZonedDateTime.now()
-                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd-hh-mm")));
-                inputDialog.setHeaderText("Enter the name of the new directory.");
-                inputDialog.showAndWait();
-                String newDirectoryName = inputDialog.getResult();
-                if (newDirectoryName != null) {
-                    startWorkerThread(newDirectoryName);
-                }
-            } case CONSECUTIVE -> startWorkerThread(null);
-            case UPDATING -> {
-                String warningMessage = """
-                        This will delete all files in the target directory,
-                        which are not present in the source directory.
-
-                        If there are any files in the target directory which
-                        should not be deleted, safe them somewhere else.
-
-                        Are you sure you want to continue?
-                        """;
-                if (showWarningDialog(warningMessage)) {
-                    startWorkerThread(null);
-                }
-            }
-        }
-    }
-
     public void checkIfBackupPossible() {
         startButton.setDisable(!(this.backupMode != BackupMode.NONE && backUpApplication.getSourceRootFile() != null
                 && backUpApplication.getTargetRootFile() != null));
-    }
-
-    private boolean showWarningDialog(String message) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, message, ButtonType.OK, ButtonType.CANCEL);
-        alert.showAndWait();
-        return alert.getResult() == ButtonType.OK;
-    }
-
-    @Override
-    public void updateProgressBarAndText(BackupApplication backupApplication) {
-        double progress = (((double) backupApplication.getProgressSize()
-                / (double) backupApplication.getSourceDirectorySize()));
-        progressBar.setProgress(progress);
-        progressText.setText(((int)(progress*100)) + "%");
-    }
-
-    private void startWorkerThread(String newDirectoryName) {
-       task = new Task<>() {
-            @Override
-            protected Void call() {
-                startButton.setDisable(true);
-                System.out.println("Starting backup in '" + backupMode + "' mode.");
-                switch (backupMode) {
-                    case NEW -> backUpApplication.newBackup(newDirectoryName);
-                    case CONSECUTIVE -> backUpApplication.consecutiveBackup();
-                    case UPDATING -> backUpApplication.updatedBackup();
-                }
-                return null;
-            }
-
-            @Override
-            protected void succeeded() {
-                super.succeeded();
-                System.out.println("Backup done.");
-                Alert successAlert = new Alert(Alert.AlertType.INFORMATION, null, ButtonType.OK);
-                successAlert.setHeaderText("Backup done!");
-                successAlert.showAndWait();
-                if (successAlert.getResult() == ButtonType.OK) {
-                    progressBar.setProgress(0);
-                    progressText.setText("0%");
-                    checkIfBackupPossible();
-                }
-            }
-        };
-        Thread t = new Thread(task);
-        t.setDaemon(true);
-        t.start();
     }
 
     private static String printFilePath(File file) {
