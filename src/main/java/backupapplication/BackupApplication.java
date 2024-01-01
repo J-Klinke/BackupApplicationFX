@@ -1,9 +1,14 @@
 package backupapplication;
 
+import javafx.util.Pair;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 public class BackupApplication extends Observable {
     private File sourceRootFile;
@@ -14,9 +19,7 @@ public class BackupApplication extends Observable {
      */
     private long progressSize = 4096;
     private File targetRootFile;
-
-    private BackupMode backupMode;
-    private DirectorySizeCalculator directorySizeCalculator = new DirectorySizeCalculator();
+    private final DirectorySizeCalculator directorySizeCalculator = new DirectorySizeCalculator();
 
 
     public BackupApplication(File sourceRootFile, File targetRootFile) {
@@ -29,23 +32,28 @@ public class BackupApplication extends Observable {
      */
     public void newBackup(String newDirectoryName) {
         File backupDirectory = this.targetRootFile.toPath().resolve(newDirectoryName).toFile();
-        backupDirectory.mkdir();
-        backup(this.sourceRootFile, backupDirectory);
+        if (!backupDirectory.mkdir()) {
+            System.out.println(backupDirectory.getPath() + " could not be created.");
+        }
+        List<Pair<String, String>> list = new ArrayList<>();
+        backup(this.sourceRootFile, backupDirectory, list);
     }
 
     /**
      * method for executing the 'consecutiveBackup' mode
      */
     public void consecutiveBackup() {
-        backup(this.sourceRootFile, this.targetRootFile);
+        List<Pair<String, String>> list = new ArrayList<>();
+        backup(this.sourceRootFile, this.targetRootFile, list);
     }
 
     /**
      * method for executing the 'updatedBackup' mode
      */
-    public void updatedBackup()  {
-        backup(this.sourceRootFile, this.targetRootFile);
-        cleanUp(this.sourceRootFile, this.targetRootFile);
+    public void updatedBackup() {
+        List<Pair<String, String>> list = new ArrayList<>();
+        list = backup(this.sourceRootFile, this.targetRootFile, list);
+        cleanUp(this.targetRootFile, list);
     }
 
     /**
@@ -55,17 +63,18 @@ public class BackupApplication extends Observable {
      * @param sourceFile source Directory
      * @param targetFile target Directory
      */
-    public void backup(File sourceFile, File targetFile) {
-        if (sourceFile.listFiles().length == 0) {
-            return;
+    public List<Pair<String, String>> backup(File sourceFile, File targetFile, List<Pair<String, String>> list) {
+        if (Objects.equals(Objects.requireNonNull(sourceFile.listFiles()).length, 0)) {
+            return list;
         }
-        for (File file : sourceFile.listFiles()) {
-            File newEntry = new File(targetFile.toPath().resolve(Path.of(file.getName(), "")).toUri());
+        for (File file : Objects.requireNonNull(sourceFile.listFiles())) {
+            File newEntry = new File(targetFile.toPath().resolve(Path.of(FileUtil.sanitizeFile(file).getName(), "")).toUri());
+            list.add(new Pair<>(file.getPath(), newEntry.getPath()));
             if (!file.isDirectory()) {
                 copySingleFile(file, newEntry);
                 try {
-                progressSize += Files.size(file.toPath());
-                notifyObserver(this);
+                    progressSize += Files.size(file.toPath());
+                    notifyObserver(this);
                 } catch (IOException e) {
                     System.err.println("IOEException while trying to read the size of file.");
                 }
@@ -74,15 +83,22 @@ public class BackupApplication extends Observable {
                 progressSize += file.length();
                 notifyObserver(this);
                 if (!targetFile.isDirectory()) {
-                    targetFile.delete();
+                    if (!targetFile.delete()) {
+                        System.out.println(targetFile.getPath() + " couldn't be deleted");
+                    }
                 }
                 if (!targetFile.exists()) {
-                    targetFile.mkdir();
+                    if (!targetFile.mkdir()) {
+                        System.out.println(targetFile.getPath() + " couldn't be created");
+                    }
                 }
-                newEntry.mkdir();
-                backup(file, newEntry);
+                if (!newEntry.mkdir()) {
+                    System.out.println(newEntry.getPath() + " couldn't be created");
+                }
+                backup(file, newEntry, list);
             }
         }
+        return list;
     }
 
     /**
@@ -95,22 +111,28 @@ public class BackupApplication extends Observable {
     private void copySingleFile(File file, File targetDirectory) {
         try {
             if (!targetDirectory.exists()) {
-                targetDirectory.createNewFile();
+                if (!targetDirectory.createNewFile()) {
+                    System.out.println(targetDirectory.getPath() + " couldn't be created");
+                }
             }
             if (!FileUtil.compareFiles(file, targetDirectory)) {
                 System.out.print("Copying " + file.getPath() + "...");
-                InputStream in = new FileInputStream((file));
-                OutputStream out = new FileOutputStream(targetDirectory);
-                byte[] buffer = new byte[1024];
-                int length;
-                while ((length = in.read(buffer)) > 0) {
-                    out.write(buffer, 0, length);
+                try (FileInputStream in = new FileInputStream((file));
+                     FileOutputStream out = new FileOutputStream(targetDirectory)
+                ) {
+                    byte[] buffer = new byte[1024];
+                    int length;
+                    while ((length = in.read(buffer)) > 0) {
+                        out.write(buffer, 0, length);
+                    }
                 }
                 System.out.println(" done.");
             }
         } catch (IOException e) {
-            targetDirectory.delete();
-            System.out.println(e);
+            if (targetDirectory.delete()) {
+                System.out.println(targetDirectory.getPath() + " couldn't be deleted");
+            }
+            e.printStackTrace(System.out);
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
@@ -121,13 +143,12 @@ public class BackupApplication extends Observable {
      * target directory (after the backup) with the source Directory and deletes everything not found in source
      *
      * @param targetDirectory the target Directory
-     * @param sourceDirectory the source Directory
      */
-    public void cleanUp(File sourceDirectory, File targetDirectory){
+    public void cleanUp(File targetDirectory, List<Pair<String, String>> list) {
         try {
-            Files.walkFileTree(targetDirectory.toPath(), new CleanupFileVisitor(sourceDirectory.toPath(), targetDirectory.toPath()));
+            Files.walkFileTree(targetDirectory.toPath(), new CleanupFileVisitor(targetDirectory.toPath(), list));
         } catch (Exception e) {
-            System.out.println(e);
+            e.printStackTrace(System.out);
         }
 
     }

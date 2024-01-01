@@ -1,60 +1,86 @@
 package backupapplication;
 
+import javafx.util.Pair;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class CleanupFileVisitor implements FileVisitor<Path> {
 
-    private Path sourceDirectory;
-    private Path targetDirectory;
+    private final Path targetDirectory;
+    private final List<Pair<String, String>> list;
 
-    CleanupFileVisitor(Path sourceDirectory, Path targetDirectory) {
-        this.sourceDirectory = sourceDirectory;
+    CleanupFileVisitor(Path targetDirectory, List<Pair<String, String>> list) {
         this.targetDirectory = targetDirectory;
+        this.list = list;
     }
 
 
     @Override
     public FileVisitResult preVisitDirectory(Path directoryPath, BasicFileAttributes attrs) {
-
-        Path relativize = targetDirectory.relativize(directoryPath);
-        Path fileInSource = sourceDirectory.resolve(relativize);
-        if (!fileInSource.toFile().exists()) {
+        if (directoryPath == targetDirectory){
+            return FileVisitResult.CONTINUE;
+        }
+        AtomicReference<String> originalFile = new AtomicReference<>("");
+        list.forEach(stringStringPair -> {
+            if (Objects.equals(stringStringPair.getValue(), directoryPath.toString())) {
+                originalFile.set(stringStringPair.getKey());
+            }
+        });
+        if (Objects.equals(originalFile.get(), "")) {
             System.out.print("Deleting " + directoryPath + "...");
-            FileUtil.deleteDirectory(directoryPath.toFile());
-            System.out.println(" done.");
+            if (!FileUtil.deleteDirectory(directoryPath.toFile())) {
+                System.out.println(" failed");
+            } else {
+                System.out.println(" done.");
+            }
         }
         return FileVisitResult.CONTINUE;
     }
 
     @Override
     public FileVisitResult visitFile(Path filePath, BasicFileAttributes attrs) {
-
-        Path relativize = targetDirectory.relativize(filePath);
-        Path fileInSource = sourceDirectory.resolve(relativize);
-        if (!fileInSource.toFile().exists()) {
+        AtomicReference<String> originalFile = new AtomicReference<>("");
+        list.forEach(stringStringPair -> {
+            if (Objects.equals(stringStringPair.getValue(), filePath.toString())) {
+                originalFile.set(stringStringPair.getKey());
+            }
+        });
+        if (Objects.equals(originalFile.get(), "") && !(new File(originalFile.get()).exists())) {
             System.out.print("Deleting " + filePath + "...");
-            filePath.toFile().delete();
-            System.out.println(" done");
+            if (filePath.toFile().delete()) {
+                System.out.println(" done");
+            } else {
+                System.out.println(" failed");
+            }
+
         }
 
         return FileVisitResult.CONTINUE;
     }
 
     @Override
-    public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+    public FileVisitResult visitFileFailed(Path file, IOException exc) {
         return null;
     }
 
     @Override
     public FileVisitResult postVisitDirectory(Path dirPath, IOException exc) {
         File directory = dirPath.toFile();
-        if (directory.isDirectory() && directory.listFiles() == null){
-            directory.delete();
+        if (directory.isDirectory() && directory.listFiles() == null) {
+            System.out.print("Deleting " + directory + "...");
+            if (directory.delete()) {
+                System.out.println(" done");
+            } else {
+                System.out.println(" failed");
+            }
         }
 
         return FileVisitResult.CONTINUE;
