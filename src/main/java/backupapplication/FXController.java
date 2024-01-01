@@ -109,6 +109,8 @@ public class FXController implements Observer{
     void deleteOptionPressed() {
         if (deleteCheckBox.isSelected()) {
             backupMode = BackupMode.UPDATING;
+        } else {
+            backupMode = BackupMode.CONSECUTIVE;
         }
     }
 
